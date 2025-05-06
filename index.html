@@ -8,14 +8,62 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
     />
+    <style>
+      summary {
+        width: 100%;
+      }
+    </style>
   </head>
   <body>
     <h1>BTA Font Glyph Size Binary Generator</h1>
     <p>Generate glyph size binary for your BTA font so it renders correctly</p>
+
     <hr />
+
     <label for="file">Select your font image (Should be a transparent PNG file):</label>
     <input id="file" type="file" accept=".png" onchange="updateImage()" />
     <div id="canvas"></div>
+
+    <hr />
+
+    <h2>What?</h2>
+    <p>
+      When making a font for BTA, you need to generate a binary file called
+      <code>glyph_sizes_default.bin</code> to tell BTA how big each character is. This
+      tool will do that for you.
+    </p>
+    <p>Your font texture pack should have the following structure:</p>
+    <pre><code>my-font-texture-pack/
+├─ font/
+│  ├─ font_00.png
+│  └─ glyph_sizes_default.bin
+├─ manifest.json
+└─ pack.png</code></pre>
+    <details>
+      <summary><code>manifest.json</code></summary>
+      <pre><code>{
+  "description": {
+      "name": "My Font Texture Pack",
+      "line1": "Some information about my font texture pack",
+      "line2": "which can also has 2 lines!",
+      "packVersion": "7.3",
+      "format": 3
+  }
+}
+</code></pre>
+    </details>
+    <details>
+      <summary><code>font_00.png</code></summary>
+      <img
+        src="./font_00.png"
+        alt=""
+        width="256"
+        height="256"
+        loading="lazy"
+        decoding="async"
+      />
+    </details>
+
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.5/lib/p5.min.js"></script>
     <script src="./defaultSizesBinary.js"></script>
     <script>
