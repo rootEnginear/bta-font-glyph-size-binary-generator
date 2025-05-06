@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BTA Font Glyph Size Binary Generator</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+    />
+  </head>
+  <body>
+    <h1>BTA Font Glyph Size Binary Generator</h1>
+    <p>Generate glyph size binary for your BTA font so it renders correctly</p>
+    <hr />
+    <label for="file">Select your font image (Should be a transparent PNG file):</label>
+    <input id="file" type="file" accept=".png" onchange="updateImage()" />
+    <div id="canvas"></div>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.5/lib/p5.min.js"></script>
+    <script src="./defaultSizesBinary.js"></script>
+    <script>
+      let img;
+      let enabled;
+
+      const toBase64 = (file) =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+        });
+
+      const updateImage = async () => {
+        const file = document.querySelector("#file").files[0];
+        if (!file) return;
+
+        const base64 = await toBase64(file);
+        img = loadImage(base64);
+        if (!img) return;
+
+        enabled = true;
+      };
+
+      function setup() {
+        const cnv = createCanvas(256, 256);
+        cnv.parent("#canvas");
+        background(0);
+      }
+
+      function draw() {
+        if (!enabled) return;
+        if (!img) return;
+
+        background(0);
+
+        const buffer = new ArrayBuffer(DEFAULT_SIZES.byteLength);
+        const view = new Uint8Array(buffer);
+        view.set(DEFAULT_SIZES);
+
+        image(img, 0, 0);
+
+        // --- Scan each char in the image ---
+        for (let charIndex = 0; charIndex < 256; charIndex++) {
+          const charIndexX = charIndex % 16;
+          const charIndexY = Math.floor(charIndex / 16);
+
+          // Find leftmost pixel
+          let currentCharLeftMostCol = 0;
+          charLeft: for (let charPixelCol = 0; charPixelCol < 16; charPixelCol++) {
+            for (let charPixelRow = 0; charPixelRow < 16; charPixelRow++) {
+              const currentPixelX = charIndexX * 16 + charPixelCol;
+              const currentPixelY = charIndexY * 16 + charPixelRow;
+              const pixel = img.get(currentPixelX, currentPixelY);
+              if (alpha(pixel) !== 0) {
+                currentCharLeftMostCol = charPixelCol;
+                break charLeft;
+              }
+            }
+          }
+
+          // Find rightmost pixel
+          let currentCharRightMostCol = 0;
+          charRight: for (let charPixelCol = 15; charPixelCol > 0; charPixelCol--) {
+            for (let charPixelRow = 0; charPixelRow < 16; charPixelRow++) {
+              const currentPixelX = charIndexX * 16 + charPixelCol;
+              const currentPixelY = charIndexY * 16 + charPixelRow;
+              const pixel = img.get(currentPixelX, currentPixelY);
+              if (alpha(pixel) !== 0) {
+                currentCharRightMostCol = charPixelCol;
+                break charRight;
+              }
+            }
+          }
+
+          // Set the finding values
+          view[charIndex] = (currentCharLeftMostCol << 4) | currentCharRightMostCol;
+        }
+
+        // --- Download Binary ---
+        let binaryBlob = new Blob([buffer], { type: "application/binary" });
+        let downloadLink = document.createElement("a");
+        downloadLink.href = window.URL.createObjectURL(binaryBlob);
+        downloadLink.download = "glyph_sizes_default.bin";
+        downloadLink.click();
+
+        enabled = false;
+      }
+    </script>
+  </body>
+</html>
