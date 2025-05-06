@@ -23,6 +23,10 @@
     <label for="file">Select your font image (Should be a transparent PNG file):</label>
     <input id="file" type="file" accept=".png" onchange="updateImage()" />
     <div id="canvas"></div>
+    <p>
+      If file is selected but canvas is still black, click
+      <button type="button" onclick="retry()">Retry</button>
+    </p>
 
     <hr />
 
@@ -86,6 +90,10 @@
         img = loadImage(base64);
         if (!img) return;
 
+        enabled = true;
+      };
+
+      const retry = () => {
         enabled = true;
       };
 
